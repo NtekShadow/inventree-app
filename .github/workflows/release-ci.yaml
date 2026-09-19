@@ -22,6 +22,20 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
     steps:
+      - name: Free Disk Space on Runner
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY/CodeQL"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY/Ruby"
+          sudo docker system prune -af --volumes || true
+          echo "=== Disk space after cleanup ==="
+          df -h
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -83,6 +97,14 @@ jobs:
     name: Build Windows Desktop
     runs-on: windows-latest
     steps:
+      - name: Free Disk Space on Runner
+        shell: pwsh
+        run: |
+          Get-PSDrive C | Select-Object Used, Free
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "C:\Program Files\dotnet\sdk\*"
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "C:\Program Files (x86)\Android"
+          Get-PSDrive C | Select-Object Used, Free
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -141,6 +163,13 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Free Disk Space on Runner
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY/CodeQL"
+          sudo docker system prune -af --volumes || true
+
       - name: Download Android Artifact
         uses: actions/download-artifact@v4
         with:
