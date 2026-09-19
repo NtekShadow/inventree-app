@@ -546,6 +546,32 @@ class InvenTreeAPI {
   }
 
   /*
+   * Validate an API token against the server without modifying current profile
+   */
+  Future<bool> testToken(UserProfile userProfile, String token) async {
+    final originalProfile = profile;
+    try {
+      profile = userProfile;
+      await _refreshHttpsPolicy();
+
+      String actualMeUrl = supportsNewUserEndpoints ? _URL_ME : "user/me/";
+      final response = await get(
+        actualMeUrl,
+        headers: {
+          HttpHeaders.authorizationHeader: "Token ${token.trim()}",
+        },
+      );
+
+      return response.successful() && response.statusCode == 200;
+    } catch (e) {
+      debug("testToken failed: $e");
+      return false;
+    } finally {
+      profile = originalProfile;
+    }
+  }
+
+  /*
    * Fetch a token from the server,
    * with a temporary authentication header
    */

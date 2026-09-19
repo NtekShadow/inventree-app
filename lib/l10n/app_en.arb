@@ -2023,5 +2023,23 @@
   "@currency": {},
 
   "priceBreaks": "Price Breaks",
-  "@priceBreaks": {}
+  "@priceBreaks": {},
+
+  "ssoLogin": "Single Sign-On (SSO / OIDC)",
+  "@ssoLogin": {},
+
+  "ssoLoginDetails": "Log in via your Identity Provider (e.g. Authentik)",
+  "@ssoLoginDetails": {},
+
+  "enterTokenManually": "Enter API token directly",
+  "@enterTokenManually": {},
+
+  "tokenPrompt": "Paste your InvenTree API token",
+  "@tokenPrompt": {},
+
+  "tokenInvalid": "Invalid API token or connection failed",
+  "@tokenInvalid": {},
+
+  "or": "or",
+  "@or": {}
 }

@@ -1365,5 +1365,17 @@
   "currency": "Währung",
   "@currency": {},
   "priceBreaks": "Preisstaffel",
-  "@priceBreaks": {}
+  "@priceBreaks": {},
+  "ssoLogin": "Single Sign-On (SSO / OIDC)",
+  "@ssoLogin": {},
+  "ssoLoginDetails": "Mit Authentik oder Ihrem Identity Provider anmelden",
+  "@ssoLoginDetails": {},
+  "enterTokenManually": "API-Token direkt eingeben",
+  "@enterTokenManually": {},
+  "tokenPrompt": "InvenTree API-Token hier einfügen",
+  "@tokenPrompt": {},
+  "tokenInvalid": "Ungültiger API-Token oder Verbindungsfehler",
+  "@tokenInvalid": {},
+  "or": "oder",
+  "@or": {}
 }

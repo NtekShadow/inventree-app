@@ -86,3 +86,7 @@ ios/Podfile.lock
 
 # FVM Version Cache
 .fvm/
+devtools_options.yaml
+*.tmp
+start_desktop.bat
+start_inventree_release.bat
