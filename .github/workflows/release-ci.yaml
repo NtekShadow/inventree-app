@@ -1,0 +1,192 @@
+name: Release CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_github_release:
+        description: 'Publish a GitHub Release with artifacts'
+        required: true
+        type: boolean
+        default: true
+      custom_tag:
+        description: 'Custom tag name (optional, defaults to current version)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Flutter and FVM
+        id: fvm-config-action
+        uses: kuhnroyal/flutter-fvm-config-action@v2
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm-config-action.outputs.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Collect Translation Files
+        run: |
+          cd lib/l10n
+          python3 collect_translations.py
+
+      - name: Install Dependencies
+        run: |
+          dart pub global activate fvm
+          fvm install
+          fvm flutter pub get
+
+      - name: Build Android Release APK
+        run: |
+          fvm flutter build apk --release
+
+      - name: Prepare APK Artifact
+        run: |
+          mkdir -p release-output
+          cp build/app/outputs/flutter-apk/app-release.apk release-output/inventree-companion-android.apk
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventree-companion-android-apk
+          path: release-output/inventree-companion-android.apk
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows Desktop
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Flutter and FVM
+        id: fvm-config-action
+        uses: kuhnroyal/flutter-fvm-config-action@v2
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm-config-action.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm-config-action.outputs.FLUTTER_CHANNEL }}
+          cache: true
+
+      - name: Collect Translation Files
+        shell: bash
+        run: |
+          cd lib/l10n
+          python collect_translations.py
+
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          dart pub global activate fvm
+          fvm install
+          fvm flutter pub get
+
+      - name: Build Windows Desktop Release
+        shell: bash
+        run: |
+          fvm flutter build windows --release
+
+      - name: Package Windows ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-output
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath release-output\inventree-companion-windows-x64.zip -Force
+
+      - name: Upload Windows ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventree-companion-windows-zip
+          path: release-output/inventree-companion-windows-x64.zip
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-android, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.create_github_release == 'true')
+    permissions:
+      contents: write
+    steps:
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: inventree-companion-android-apk
+          path: release-assets/
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: inventree-companion-windows-zip
+          path: release-assets/
+
+      - name: Resolve Release Tag
+        id: release-tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.inputs.custom_tag }}" ]; then
+            echo "TAG=${{ github.event.inputs.custom_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=v0.25.2-sso-$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release-tag.outputs.TAG }}
+          name: InvenTree Companion ${{ steps.release-tag.outputs.TAG }}
+          draft: false
+          prerelease: false
+          body: |
+            ## InvenTree Companion — Authentik SSO / OIDC Edition
+
+            ### What's Changed
+            - **Authentik SSO / OIDC Authentication:** Seamless in-app single sign-on flow with automatic API token generation.
+            - **Windows Desktop WebView2:** Native Microsoft Edge WebView2 integration (`webview_windows`) for Windows desktop app.
+            - **Mobile In-App WebView:** Dual-mode WebView architecture for Android and iOS (`webview_flutter`).
+            - **Direct Manual Token Input:** Fallback dialog for pasting API tokens directly.
+            - **German & English Translations:** Fully localized login and SSO dialogs.
+            - **Windows Native MSVC ATL Shim:** Win32 C++ compatibility header for native builds.
+
+            ### Downloads
+            - **Android:** `inventree-companion-android.apk`
+            - **Windows (x64):** `inventree-companion-windows-x64.zip`
+          files: |
+            release-assets/inventree-companion-android.apk
+            release-assets/inventree-companion-windows-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
