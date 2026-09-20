@@ -619,7 +619,7 @@ class InvenTreeAPI {
         "Basic " + base64Encode(utf8.encode("${username}:${password}"));
 
     if (serverInfo.isEmpty && userProfile.server.isNotEmpty) {
-      await connectToServer(address: userProfile.server);
+      await checkServer(server: userProfile.server);
     }
 
     String actualTokenUrl = supportsNewUserEndpoints
