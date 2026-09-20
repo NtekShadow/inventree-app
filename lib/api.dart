@@ -618,16 +618,33 @@ class InvenTreeAPI {
     String authHeader =
         "Basic " + base64Encode(utf8.encode("${username}:${password}"));
 
+    if (serverInfo.isEmpty && userProfile.server.isNotEmpty) {
+      await connectToServer(address: userProfile.server);
+    }
+
     String actualTokenUrl = supportsNewUserEndpoints
         ? _URL_TOKEN
         : "user/token/";
 
     // Perform request to get a token
-    final response = await get(
+    APIResponse response = await get(
       actualTokenUrl,
       params: {"name": platform_name},
       headers: {HttpHeaders.authorizationHeader: authHeader},
     );
+
+    // If 404, fallback to alternative endpoint
+    if (response.statusCode == 404) {
+      final fallbackUrl = supportsNewUserEndpoints ? "user/token/" : _URL_TOKEN;
+      final fallbackResponse = await get(
+        fallbackUrl,
+        params: {"name": platform_name},
+        headers: {HttpHeaders.authorizationHeader: authHeader},
+      );
+      if (fallbackResponse.successful() || fallbackResponse.statusCode != 404) {
+        response = fallbackResponse;
+      }
+    }
 
     final data = response.asMap();
 

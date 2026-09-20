@@ -131,6 +131,8 @@ jobs:
       - name: Build Windows Desktop Release
         shell: pwsh
         run: |
+          $env:CFLAGS = "-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+          $env:CXXFLAGS = "-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
           flutter build windows --release
 
       - name: Package Windows ZIP
