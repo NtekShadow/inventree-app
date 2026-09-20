@@ -75,13 +75,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          dart pub global activate fvm
-          fvm install
-          fvm flutter pub get
+          flutter pub get
 
       - name: Build Android Release APK
         run: |
-          fvm flutter build apk --release
+          flutter build apk --release
 
       - name: Prepare APK Artifact
         run: |
@@ -99,14 +97,6 @@ jobs:
     name: Build Windows Desktop
     runs-on: windows-latest
     steps:
-      - name: Free Disk Space on Runner
-        shell: pwsh
-        run: |
-          Get-PSDrive C | Select-Object Used, Free
-          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "C:\Program Files\dotnet\sdk\*"
-          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "C:\Program Files (x86)\Android"
-          Get-PSDrive C | Select-Object Used, Free
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -133,21 +123,15 @@ jobs:
           python collect_translations.py
 
       - name: Install Dependencies
-        shell: bash
+        shell: pwsh
         run: |
-          dart pub global activate fvm
-          export PATH="$PATH:$LOCALAPPDATA/Pub/Cache/bin:$USERPROFILE/AppData/Local/Pub/Cache/bin"
-          echo "$LOCALAPPDATA/Pub/Cache/bin" >> $GITHUB_PATH
-          echo "$USERPROFILE/AppData/Local/Pub/Cache/bin" >> $GITHUB_PATH
-          fvm install
-          fvm flutter config --enable-windows-desktop
-          fvm flutter pub get
+          flutter config --enable-windows-desktop
+          flutter pub get
 
       - name: Build Windows Desktop Release
-        shell: bash
+        shell: pwsh
         run: |
-          export PATH="$PATH:$LOCALAPPDATA/Pub/Cache/bin:$USERPROFILE/AppData/Local/Pub/Cache/bin"
-          fvm flutter build windows --release
+          flutter build windows --release
 
       - name: Package Windows ZIP
         shell: pwsh
