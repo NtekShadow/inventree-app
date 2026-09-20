@@ -557,9 +557,7 @@ class InvenTreeAPI {
       String actualMeUrl = supportsNewUserEndpoints ? _URL_ME : "user/me/";
       final response = await get(
         actualMeUrl,
-        headers: {
-          HttpHeaders.authorizationHeader: "Token ${token.trim()}",
-        },
+        headers: {HttpHeaders.authorizationHeader: "Token ${token.trim()}"},
       );
 
       return response.successful() && response.statusCode == 200;

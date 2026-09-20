@@ -88,8 +88,9 @@ class _InvenTreeSSOLoginWidgetState extends State<InvenTreeSSOLoginWidget> {
         _windowsController.loadingState.listen((state) {
           if (mounted) {
             setState(() {
-              _loadingProgress =
-                  state == win_wv.LoadingState.loading ? 0.5 : 1.0;
+              _loadingProgress = state == win_wv.LoadingState.loading
+                  ? 0.5
+                  : 1.0;
             });
           }
           if (state == win_wv.LoadingState.navigationCompleted) {
@@ -236,7 +237,8 @@ class _InvenTreeSSOLoginWidgetState extends State<InvenTreeSSOLoginWidget> {
     } catch (_) {}
 
     // JavaScript to request the user's API token within the authenticated session
-    final jsCode = """
+    final jsCode =
+        """
       (async function() {
         function sendResult(obj) {
           let str = JSON.stringify(obj);
@@ -301,8 +303,9 @@ class _InvenTreeSSOLoginWidgetState extends State<InvenTreeSSOLoginWidget> {
           _handleTokenPayload(res);
         }
       } else {
-        final rawResult =
-            await _mobileController.runJavaScriptReturningResult(jsCode);
+        final rawResult = await _mobileController.runJavaScriptReturningResult(
+          jsCode,
+        );
         _handleTokenPayload(rawResult);
       }
     } catch (e) {

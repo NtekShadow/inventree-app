@@ -2,6 +2,8 @@ name: Release CI
 
 on:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
   workflow_dispatch:
@@ -134,12 +136,17 @@ jobs:
         shell: bash
         run: |
           dart pub global activate fvm
+          export PATH="$PATH:$LOCALAPPDATA/Pub/Cache/bin:$USERPROFILE/AppData/Local/Pub/Cache/bin"
+          echo "$LOCALAPPDATA/Pub/Cache/bin" >> $GITHUB_PATH
+          echo "$USERPROFILE/AppData/Local/Pub/Cache/bin" >> $GITHUB_PATH
           fvm install
+          fvm flutter config --enable-windows-desktop
           fvm flutter pub get
 
       - name: Build Windows Desktop Release
         shell: bash
         run: |
+          export PATH="$PATH:$LOCALAPPDATA/Pub/Cache/bin:$USERPROFILE/AppData/Local/Pub/Cache/bin"
           fvm flutter build windows --release
 
       - name: Package Windows ZIP
@@ -215,7 +222,9 @@ jobs:
             - **Android:** `inventree-companion-android.apk`
             - **Windows (x64):** `inventree-companion-windows-x64.zip`
           files: |
-            release-assets/inventree-companion-android.apk
-            release-assets/inventree-companion-windows-x64.zip
+            release-assets/*.apk
+            release-assets/*.zip
+            release-assets/**/*.apk
+            release-assets/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

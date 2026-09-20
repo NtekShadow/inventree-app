@@ -113,10 +113,7 @@ class _InvenTreeLoginState extends State<InvenTreeLoginWidget> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  L10().tokenPrompt,
-                  style: TextStyle(fontSize: 13),
-                ),
+                Text(L10().tokenPrompt, style: TextStyle(fontSize: 13)),
                 const SizedBox(height: 12),
                 TextFormField(
                   autofocus: true,
